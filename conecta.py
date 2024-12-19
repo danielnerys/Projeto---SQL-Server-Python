@@ -2,16 +2,28 @@ import pyodbc
 import pandas as pd
 import matplotlib.pyplot as plt
 # Conexão com autenticação integrada
-server = 'DESKTOP-9CDNUB4\\SQLEXPRESS'
+#servidor local
+# server = 'DESKTOP-9CDNUB4\\SQLEXPRESS'
+# database = 'projeto'
+# driver = 'ODBC Driver 17 for SQL Server'
+
+server = '172.16.66.16'  # Exemplo: 'localhost\\SQLEXPRESS'
 database = 'projeto'
-driver = 'ODBC Driver 17 for SQL Server'
+username = 'sa'
+password = 'Senai@134'
+
 
 try:
+    # connection = pyodbc.connect(
+    #     f"DRIVER={{{driver}}};"
+    #     f"SERVER={server};"
+    #     f"DATABASE={database};"
+    #     f"Trusted_Connection=yes;"
+    # )
+    
     connection = pyodbc.connect(
-        f"DRIVER={{{driver}}};"
-        f"SERVER={server};"
-        f"DATABASE={database};"
-        f"Trusted_Connection=yes;"
+        f'DRIVER={{ODBC Driver 17 for SQL Server}};SERVER={
+            server};DATABASE={database};UID={username};PWD={password}'
     )
     print("Conexão bem-sucedida!")
     
@@ -108,6 +120,25 @@ ORDER BY
     
     print('Total de Jogadores participantes')
     print(df_total_jogadores)
+
+
+########## Média de idade de jogadores #############
+
+
+    query_media_idade = """SELECT AVG(DATEDIFF(YEAR, jogador.data_nascimento, GETDATE()) - 
+           CASE 
+               WHEN MONTH(jogador.data_nascimento) > MONTH(GETDATE()) OR 
+                    (MONTH(jogador.data_nascimento) = MONTH(GETDATE()) AND DAY(jogador.data_nascimento) > DAY(GETDATE()))
+               THEN 1 
+               ELSE 0 
+           END) AS media_idade
+FROM jogador;"""
+    media_idade = pd.read_sql(query_media_idade, connection)
+    df_media_idade = pd.DataFrame(media_idade)
+    print('##################### A media de idade dos 15 jogadores é ###############################')
+    print(f'A media de idade dos 15 jogadores é de {df_media_idade}')
+
+
         
 
 except Exception as e:
